@@ -1,0 +1,14 @@
+{
+  "responses": {
+    "leak_example": "The leakage audit identified days_past_due_60 and collection_calls as post-outcome fields. Both were removed because their information becomes available after the application date and therefore would not be available when making the original prediction. The audit retained 22 eligible predictors and removed no duplicate rows.",
+    "split_reason": "The notebook uses three chronological forward-validation folds to simulate predicting later applications using historical data. It excludes training labels that have not completed the 90-day maturity period and removes customers appearing in each validation fold from that fold's training data. All three folds had zero shared customers, and the latest training labels were available by June 30, 2023, December 31, 2023 and June 30, 2024, respectively.",
+    "observed_gap": "The leaky random control achieved a mean AP of 0.9988, compared with 0.3133 for the honest tuned protocol, a difference of 0.6855. Their mean ROC-AUC scores were 0.9999 and 0.7855, respectively, a difference of 0.2144. This demonstrates how leakage can dramatically inflate performance. The honest fixed protocol achieved a mean AP of 0.3153, slightly higher than the honest tuned protocol at 0.3133. These results do not establish universal model superiority because the protocols use different validation populations and the three forward folds represent specific time periods.",
+    "imputer_reason": "Imputation values must be learned only from training data to prevent information from validation rows influencing preprocessing. The inner stopping set controls the selected number of trees by monitoring validation log loss, helping prevent overfitting before refitting on the full fold-training data.",
+    "limitations": "The search was bounded to eight trials and a 120-second budget, so it may not identify the globally best hyperparameters. Also, only 5,039 of 10,000 rows received OOF predictions, giving 50.39% whole-dataset coverage; the sequential folds are also dependent on their particular time periods."
+  },
+  "checkpoint": {
+    "status": "READY_FOR_REVIEW",
+    "missing": [],
+    "automatic_grade": null
+  }
+}

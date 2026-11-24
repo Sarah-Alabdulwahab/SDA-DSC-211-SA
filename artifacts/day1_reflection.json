@@ -1,0 +1,18 @@
+{
+  "problem_statement": "Predicting whether a loan applicant will default within 90 days",
+  "candidate": "XGBoost",
+  "notes": {
+    "evidence": "XGBoost achieved the highest Average Precision (AP) of 0.3338, compared with 0.3258 for Logistic Regression and 0.3248 for LightGBM. This suggests that XGBoost provides the strongest precision-recall performance among the three models for identifying the minority default class.",
+    "limitation": "This experiment uses a stratified random split as a temporary educational baseline. It cannot establish how well the selected model will generalize to future applications, because it does not fully account for chronological changes, repeated customers, or the 90-day target-maturity requirement.",
+    "next_test": "Evaluating out-of-fold performance stability across chronological time splits combined with probability calibration and cost-sensitive threshold tuning could alter this choice if calibration drift or operational misclassification costs heavily favor a linear or simpler threshold structure."
+  },
+  "exit_answers": [
+    "Average Precision is important because it focuses on the precision-recall trade-off for the minority positive class. ROC-AUC measures ranking performance across thresholds but can look relatively strong even when the model has difficulty identifying rare positive cases. AP therefore gives us additional insight into how effectively the model identifies defaults while controlling false positives.",
+    "Early stopping uses validation data to determine when model training should stop. If we also use that same data for final performance evaluation, the evaluation is no longer fully independent because the model-selection process has already used information from it. Keeping the comparison set separate provides a more independent assessment of generalization and reduces optimistic evaluation bias."
+  ],
+  "checkpoint": {
+    "status": "READY_FOR_REVIEW",
+    "missing": [],
+    "automatic_grade": null
+  }
+}
