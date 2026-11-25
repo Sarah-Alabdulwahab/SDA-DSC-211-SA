@@ -1,8 +1,8 @@
 # SDA-DSC-211 · Advanced Machine Learning Methods
 
-## Tamweel Lite — Educational credit-risk modeling
+## Tamweel Lite — Credit-risk modeling
 
-This five-day project builds a reproducible machine-learning workflow to estimate synthetic loan default risk within 90 days (`default_within_90d`) and prioritize applications for review under an educational cost and capacity policy. The data are fictional; review flags are not loan approval or rejection decisions.
+This project builds a reproducible machine-learning workflow to estimate synthetic loan default risk within 90 days (`default_within_90d`) and prioritize applications for review under an educational cost and capacity policy. The data are fictional; review flags are not loan approval or rejection decisions.
 
 **Final model:** Logistic Regression (`KEEP SINGLE`). **Final challenge batch:** 300 review flags out of 2,500 applications (12%).
 
@@ -32,7 +32,7 @@ Results are historical development evidence, not a guarantee of future performan
 
 The saved notebook reports `REPLAY_MATCH` and `BUNDLE_BYTES_VERIFIED`, but also `PROJECT_WORK_REQUIRED` because earlier daily evidence and separate notebooks were missing from its bundle. Notebook 99, repository accessibility, and Final Project Check still require verification. The official administrative requirements state that no presentation is required, despite the saved bundle checker listing one; confirm the discrepancy before submission.
 
-## Day 1 — Build a baseline and compare boosting
+## The First Stage — Build a baseline and compare boosting
 
 Notebook: `notebooks/01_baseline_boosting.ipynb`
 
@@ -55,14 +55,8 @@ The learning curves compare training and inner validation log loss across boosti
 The ROC and precision–recall curves compare the ranking performance of the three baseline models. Logistic Regression achieved the highest ROC-AUC (0.8213), while XGBoost achieved the highest AP (0.3338). With only 7.89% defaults, AP provides particularly relevant evidence for the provisional selection of XGBoost.
 ![Day1 roc pr](artifacts/day1_roc_pr.png)
 
-#### Daily question | Day 1
 
-***Which model did you select initially, and what is the strongest result supporting your choice?***
-
-I initially selected XGBoost as my candidate model because it achieved the highest Average Precision (AP) of 0.3338 among the three models, compared with 0.3258 for Logistic Regression and 0.3248 for LightGBM. Since the dataset is imbalanced, with only 7.89% of applications resulting in defaults, Average Precision is particularly useful for evaluating how effectively the model identifies the minority default class. Although Logistic Regression achieved the highest ROC-AUC (0.8213), XGBoost's stronger Average Precision provides the most relevant evidence supporting my initial selection. This makes XGBoost a promising candidate for further evaluation, rather than a definitive winner.
-
-
-## Day 2 — Validate honestly before tuning
+## The Second Stage — Validate honestly before tuning
 
 Notebook: `notebooks/02_validation_tuning.ipynb`
 
@@ -90,26 +84,7 @@ The Optuna search graph tracks mean AP across eight tuning trials using three in
 This comparison illustrates how validation design affects reported ROC-AUC and AP. Removing post-outcome features reduced random-control AP from 0.9988 to 0.3110, revealing substantial leakage-related inflation. Honest fixed and tuned models achieved AP of 0.3153 and 0.3133, respectively; the whiskers represent fold standard deviations, not confidence intervals.
 ![Day2 validation comparison](artifacts/day2_validation_comparison.png)
 
-#### Daily question | Day 2
-
-***What leakage risk did you identify, and how did the validation design prevent it?***
-
-> I identified multiple leakage risks, including post-outcome feature leakage, temporal leakage from randomly mixing past and future loan records, customer overlap across training and validation sets, and statistical leakage from global data imputation.
-
-The validation design addressed these risks by:
-
-1. Auditing and removing two post-outcome features, `days_past_due_60` and `collection_calls`, because their information was unavailable at application time. The impact of this leakage was evident when ROC-AUC decreased from 0.9999 in the leaky random control to 0.8010 in the clean random control, while Average Precision decreased from 0.9988 to 0.3110.
-
-2. Enforcing three forward-time chronological splits with a strict 90-day label maturity rule to prevent future-to-past leakage and the inclusion of immature training labels. This excluded 826, 785, and 861 immature training rows across the three respective folds.
-
-3. Purging validation customers from training folds to prevent borrower memorization, resulting in zero shared customers between training and validation across all three folds.
-
-4. Fitting preprocessing transformations, such as imputation, strictly within the relevant training data rather than across the entire dataset to prevent statistical information from validation data influencing model development.
-
-These measures provide a more realistic and trustworthy evaluation of model performance. However, the observed performance gaps are descriptive results from this specific validation experiment and do not guarantee future generalization.
-
-
-## Day 3 — Choose a decision threshold you can defend
+## The Third Stage — Choose a decision threshold you can defend
 
 Notebook: `notebooks/03_cost_sensitive_decision.ipynb`
 
@@ -136,16 +111,7 @@ The cost and flag-rate curves show how changing the score threshold affects educ
 The left panel compares actual review flags with available capacity in each validation period, confirming flag rates of 8.39%, 10.93% and 11.89%. The right panel compares regional false-positive rates, with a maximum gap of approximately 0.65 percentage points. This regional comparison is descriptive and does not establish fairness.
 ![Day3 capacity regions](artifacts/day3_capacity_regions.png)
 
-#### Daily question | Day 3
-
-***Why is a fixed threshold of 0.5 not always suitable for this review policy?***
-
-> A fixed threshold of 0.5 is not always suitable because it does not account for the asymmetric cost of classification errors or the operational review capacity. In this exercise, a False Negative costs 10 educational loss units, while a False Positive costs only 1 unit. At the default 0.5 threshold, 1,005 applications were flagged, exceeding the 12% review capacity, with a total loss of 2,403 units.
-
-> The unconstrained minimum-loss threshold of 0.4486 reduced the loss to 2,275 units but flagged 1,141 applications, also exceeding capacity. The selected constrained threshold of 0.6583 produced 526 flags and a loss of 2,639 units while satisfying the 12% capacity ceiling in all three validation periods. Therefore, threshold selection must balance classification costs with operational constraints rather than automatically using 0.5.
-
-
-## Day 4 — Explain the model and test its probabilities
+## The Fourth Stage — Explain the model and test its probabilities
 
 Notebook: `notebooks/04_explain_calibrate.ipynb`
 
@@ -183,16 +149,8 @@ The stability plots summarize customer-cluster bootstrap uncertainty for AP and 
 The left panel illustrates the sigmoid mapping and diagnostic review band of ±0.02 around the transported threshold. The right panel compares review demand with capacity by evaluation quarter. Candidate counts of 109 and 122 exceed capacities of 100 and 107, highlighting the need for capacity review without retuning on evaluation data.
 ![Review zone](artifacts/review_zone.png)
 
-#### Daily question | Day 4
 
-***Which feature was most important in your explanation, and why does that not prove causality?***
-
-> The credit bureau score (`bureau_score`) was the most important feature in my model explanation. It ranked first in both permutation importance, with a mean AP drop of 0.1270, and global SHAP importance, with a mean absolute contribution of 0.9042 log-odds.
-
-> However, high feature importance does not prove causality. SHAP and permutation importance measure the model's reliance on predictive patterns and statistical associations rather than establishing a cause-and-effect relationship. Correlated features may also share predictive information. Therefore, changing an applicant's bureau score does not necessarily cause a corresponding change in their actual default outcome.
-
-
-## Day 5 — Choose what is worth shipping and deliver your project
+## The Fifth Stage — Choose what is worth shipping and deliver your project
 
 Notebook: `notebooks/05_final_model.ipynb`
 
@@ -237,7 +195,49 @@ The reliability plots compare raw and sigmoid-calibrated probabilities on the 83
 The score distribution shows calibrated probabilities for the 2,500 unlabeled challenge applications and the frozen threshold of 0.122258. Of the 330 threshold-eligible applications, 30 are removed by the capacity policy, leaving exactly 300 review flags (12%). Without challenge outcomes, predictive performance cannot be assessed.
 ![Day5 challenge capacity](artifacts/day5_challenge_capacity.png)
 
-#### Daily question | Day 5
+## Daily answers | الإجابات اليومية
+
+### The First Stage
+
+***Which model did you select initially, and what is the strongest result supporting your choice?***
+
+I initially selected XGBoost as my candidate model because it achieved the highest Average Precision (AP) of 0.3338 among the three models, compared with 0.3258 for Logistic Regression and 0.3248 for LightGBM. Since the dataset is imbalanced, with only 7.89% of applications resulting in defaults, Average Precision is particularly useful for evaluating how effectively the model identifies the minority default class. Although Logistic Regression achieved the highest ROC-AUC (0.8213), XGBoost's stronger Average Precision provides the most relevant evidence supporting my initial selection. This makes XGBoost a promising candidate for further evaluation, rather than a definitive winner.
+
+### The Second Stage
+
+***What leakage risk did you identify, and how did the validation design prevent it?***
+
+> I identified multiple leakage risks, including post-outcome feature leakage, temporal leakage from randomly mixing past and future loan records, customer overlap across training and validation sets, and statistical leakage from global data imputation.
+
+The validation design addressed these risks by:
+
+1. Auditing and removing two post-outcome features, `days_past_due_60` and `collection_calls`, because their information was unavailable at application time. The impact of this leakage was evident when ROC-AUC decreased from 0.9999 in the leaky random control to 0.8010 in the clean random control, while Average Precision decreased from 0.9988 to 0.3110.
+
+2. Enforcing three forward-time chronological splits with a strict 90-day label maturity rule to prevent future-to-past leakage and the inclusion of immature training labels. This excluded 826, 785, and 861 immature training rows across the three respective folds.
+
+3. Purging validation customers from training folds to prevent borrower memorization, resulting in zero shared customers between training and validation across all three folds.
+
+4. Fitting preprocessing transformations, such as imputation, strictly within the relevant training data rather than across the entire dataset to prevent statistical information from validation data influencing model development.
+
+These measures provide a more realistic and trustworthy evaluation of model performance. However, the observed performance gaps are descriptive results from this specific validation experiment and do not guarantee future generalization.
+
+### The Third Stage
+
+***Why is a fixed threshold of 0.5 not always suitable for this review policy?***
+
+> A fixed threshold of 0.5 is not always suitable because it does not account for the asymmetric cost of classification errors or the operational review capacity. In this exercise, a False Negative costs 10 educational loss units, while a False Positive costs only 1 unit. At the default 0.5 threshold, 1,005 applications were flagged, exceeding the 12% review capacity, with a total loss of 2,403 units.
+
+> The unconstrained minimum-loss threshold of 0.4486 reduced the loss to 2,275 units but flagged 1,141 applications, also exceeding capacity. The selected constrained threshold of 0.6583 produced 526 flags and a loss of 2,639 units while satisfying the 12% capacity ceiling in all three validation periods. Therefore, threshold selection must balance classification costs with operational constraints rather than automatically using 0.5.
+
+### The Fourth Stage
+
+***Which feature was most important in your explanation, and why does that not prove causality?***
+
+> The credit bureau score (`bureau_score`) was the most important feature in my model explanation. It ranked first in both permutation importance, with a mean AP drop of 0.1270, and global SHAP importance, with a mean absolute contribution of 0.9042 log-odds.
+
+> However, high feature importance does not prove causality. SHAP and permutation importance measure the model's reliance on predictive patterns and statistical associations rather than establishing a cause-and-effect relationship. Correlated features may also share predictive information. Therefore, changing an applicant's bureau score does not necessarily cause a corresponding change in their actual default outcome.
+
+### The Fifth Stage
 
 ***Why did you choose the single model or the ensemble for the final project?***
 
