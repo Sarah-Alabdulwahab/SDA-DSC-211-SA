@@ -1,0 +1,83 @@
+# بطاقة قرارك — Tamweel Lite
+
+**الحالة:** جاهزة للمراجعة؛ لا تعني اعتمادًا أو درجة
+**مصدر الأرقام:** LIVE · **الاستراتيجية:** weighted · **الصفوف:** 5,039 OOF
+
+**المهمة:** الفئة الموجبة `default_within_90d=1` تعني حدث تعثر اصطناعي خلال90 يومًا بعد الطلب. كل طية تحقق طلبات لاحقة، وتستبعد عملاءها من التدريب وتشترط نضج نتيجة التدريب قبل بدايتها. المعرّفات والتاريخ خارج المدخلات.
+
+| الدليل | القيمة |
+|---|---:|
+| العتبة المقيدة، بالقيمة الكاملة | 0.6583471436014694 |
+| عتبة أقل خسارة دون قيد | 0.44863935722081005 |
+| Recall | 40.89% |
+| Precision | 29.85% |
+| AP مجمع منOOF | 0.3100 |
+| الإشارات | 526 من 5,039 |
+| FN / FP | 227 / 369 |
+| الخسارة التعليمية | 2639 وحدة |
+| خسارة0.5 | 2403 وحدة؛ ضمن السعة: False |
+| التغير عن0.5 | +236 وحدة؛ الموجب زيادة |
+| خسارة لكل10,000 طلب، تطبيع حسابي | 5237.15 وحدة |
+| فجوة معدل الإنذار الخاطئ بين المناطق | 0.648 نقطة مئوية |
+
+**القاعدة:** درجة ≥ 0.6583471436014694 تعني إشارة مراجعة داخل التمرين؛ غير ذلك بلا إشارة. لا تتخذ موافقة أو رفض تمويل حقيقي. احفظ الدقة الكاملة؛ تقريب العتبة قد يغيّر حجم الطابور.
+
+**السياسة:** FN=10 وFP=1 وحدات تعليمية، وسعة 12% لكل فترة بعد التقريب لأسفل. ليست ريالات فعلية أو رسوم أدوات أو خصمًا من الدرجة.
+
+**دليل السعة:** الفترة 1: 137/195, الفترة 2: 183/200, الفترة 3: 206/207.
+
+## لماذا اخترت هذه العتبة؟
+The selected threshold of 0.6583471436014694 is systematically derived by sweeping across every distinct out-of-fold (OOF) prediction score rather than relying on an arbitrary 0.5 cutoff. It explicitly minimizes the educational error-loss formula (10 × FN + 1 × FP) while strictly enforcing the operational capacity limit of 12% flagged requests within every validation period.
+
+The selected threshold resulted in 526 flagged requests, representing 10.44% of the 5,039 eligible OOF requests, with a total loss of 2,639 units. The flagging rates across the three validation periods were 8.39%, 10.93%, and 11.89%, respectively, all within the capacity ceiling.
+
+Furthermore, preserving the full floating-point precision and the greater-than-or-equal-to decision rule prevents rounding-related boundary shifts. Sensitivity testing across ±20% FN cost scenarios (8, 10, and 12 units) produced the same selected threshold, flag count, and recall of 40.89%, demonstrating stability under the tested policy assumptions.
+
+## الخسارة والسعة
+Without operational limits, the model minimizes total educational loss by flagging more high-risk applications to reduce costly False Negatives (10 loss units each). The unconstrained minimum-loss threshold of 0.4486 flagged 1,141 applications, representing 22.64% of eligible requests, and achieved a total loss of 2,275 units.
+
+However, applying the binding 12% per-period capacity ceiling resulted in a higher threshold of 0.6583, reducing the number of flagged applications to 526 and increasing the total loss to 2,639 units.
+
+This represents an additional loss of 364 units compared with the unconstrained minimum-loss rule and 236 units compared with the default 0.5 threshold. Recall also decreased from 64.06% under the unconstrained rule to 40.89% under the constrained rule.
+
+Consequently, the capacity-constrained rule trades higher False Negative exposure for operational feasibility across all observed validation periods, although future capacity compliance is not guaranteed.
+
+## فرق المناطق وما يحتاج إلى مراجعة
+Applying a single shared threshold across all regions reveals descriptive variations in False Positive Rates (FPR), calculated as false positives divided by non-default cases.
+
+The western region recorded the highest FPR at 8.29%, followed by the central region at 8.09%, the eastern region at 7.72%, and the other region at 7.64%. The resulting gap between the highest and lowest regional FPRs was approximately 0.6484 percentage points.
+
+All four regions had more than 1,000 non-default cases, and none triggered the low-negative-support warning of fewer than 30 cases. Nevertheless, the observed regional differences, particularly the higher FPR in the western region, can inform targeted human review to investigate potential feature drift, underwriting differences, or regional sample characteristics.
+
+Because this audit is strictly descriptive rather than a formal statistical test or fairness certification, the observed differences do not establish discrimination, and separate group thresholds should not be applied without a governed policy.
+
+## حدود النتيجة
+• OOF development selection: Selecting the threshold using development OOF labels may produce optimistic development evidence because the same OOF outcomes are used to select and assess the operating point. The observed loss of 2,639 units and recall of 40.89% therefore do not constitute an independent final-test guarantee.
+
+• Coverage: OOF predictions cover only 5,039 of the 10,000 requests, representing 50.39% of the complete dataset and 100% of eligible validation requests. The remaining 4,961 initial warm-up rows are excluded from OOF evaluation. Historical capacity compliance does not guarantee future queue stability.
+
+• Calibration: Training interventions such as class weighting (scale_pos_weight) and oversampling can alter raw score scales and probability calibration. Therefore, the selected weighted model's threshold of 0.6583 should be interpreted as a decision score cutoff rather than a verified 65.83% probability of default. Probability reliability requires separate calibration assessment in Day 4.
+
+• Simplified policy: The loss units (10 for FN and 1 for FP) and the 12% per-period capacity ceiling are educational abstractions that omit actual operational review costs, reviewer effectiveness, and real monetary credit loss. Consequently, the selected operating point is conditional on these simplified policy assumptions.
+
+OOF تغطي 50.39% من التدريب و100% من الصفوف المؤهلة؛ 4,961 صفًا تمهيديًا بلا تنبؤ. اختيار العتبة وتقدير خسارتها هنا يستخدمان أهدافOOF نفسها؛ هذه نتيجة تطوير لا اختبار نهائي. لم نستخدم التحدي. المقارنة الجغرافية وصفية وليست شهادة عدالة، والأوزان لا تضمن معايرة الدرجات.
+
+## سؤالك الأول: لماذا قد تخدعكAccuracy؟
+When defaults represent a small minority of loan applications, a trivial baseline rule that flags zero requests ("no flags for anyone") can still achieve very high overall accuracy simply by predicting the majority non-default class.
+
+In this experiment, the positive rate across the 5,039 eligible OOF requests was approximately 7.62%. The no-flag baseline achieved an accuracy of 92.38% despite detecting none of the 384 actual defaults, resulting in zero recall and a total educational loss of 3,840 units.
+
+In comparison, the weighted model at the default 0.5 threshold achieved a lower accuracy of 81.25% but detected 57.81% of actual defaults and reduced the educational loss to 2,403 units, although it exceeded operational capacity.
+
+Therefore, high accuracy does not necessarily indicate effective risk detection or operational suitability. Inspecting Average Precision (AP), recall, precision, flag counts, capacity feasibility, and asymmetric loss units together provides a more meaningful assessment of model utility.
+
+## سؤالك الثاني: لماذا تختار علىOOF؟
+• Versus training predictions: Training predictions may be overly optimistic because the model is evaluated on observations it has already seen during fitting. Selecting a threshold using these predictions may produce an unreliable operating point and underestimate future classification loss or misrepresent operational review volume.
+
+Instead, threshold selection uses 5,039 out-of-fold predictions generated across three forward-time validation folds. Each validation prediction is produced by a model that was not trained on that validation observation, with chronological splitting, label maturity enforcement, and zero shared customers between training and validation.
+
+• Versus challenge data: Using challenge outcomes to select or adjust thresholds would introduce test-set leakage into the modeling pipeline, compromising the independence of the final evaluation.
+
+OOF predictions therefore provide more realistic development evidence for threshold selection while preserving the challenge dataset for independent evaluation. However, because the threshold is selected using OOF outcomes, its observed performance remains development evidence rather than an unbiased final-test estimate.
+
+أدلتك في `artifacts/threshold_metrics.json` و`day3_period_capacity.csv` و`day3_region_audit.csv` و`day3_cost_sensitivity.csv` و`cost_curve.png`. الحساسية سيناريوهات ±20% لخسارةFN، وليست فترات ثقة. راجع السعة والمعايرة عند تغير البيانات؛ لا تفترض ثباتهما مستقبلًا.
