@@ -197,13 +197,13 @@ The score distribution shows calibrated probabilities for the 2,500 unlabeled ch
 
 ## Daily answers | الإجابات اليومية
 
-### The First Stage | Day 1
+### The First Stage
 
 ***Which model did you select initially, and what is the strongest result supporting your choice?***
 
 > I initially selected XGBoost as my candidate model because it achieved the highest Average Precision (AP) of 0.3338 among the three models, compared with 0.3258 for Logistic Regression and 0.3248 for LightGBM. Since the dataset is imbalanced, with only 7.89% of applications resulting in defaults, Average Precision is particularly useful for evaluating how effectively the model identifies the minority default class. Although Logistic Regression achieved the highest ROC-AUC (0.8213), XGBoost's stronger Average Precision provides the most relevant evidence supporting my initial selection. This makes XGBoost a promising candidate for further evaluation, rather than a definitive winner.
 
-### The Second Stage | Day 2
+### The Second Stage
 
 ***What leakage risk did you identify, and how did the validation design prevent it?***
 
@@ -221,7 +221,7 @@ The validation design addressed these risks by:
 
 These measures provide a more realistic and trustworthy evaluation of model performance. However, the observed performance gaps are descriptive results from this specific validation experiment and do not guarantee future generalization.
 
-### The Third Stage | Day 3
+### The Third Stage
 
 ***Why is a fixed threshold of 0.5 not always suitable for this review policy?***
 
@@ -229,7 +229,7 @@ These measures provide a more realistic and trustworthy evaluation of model perf
 
 > The unconstrained minimum-loss threshold of 0.4486 reduced the loss to 2,275 units but flagged 1,141 applications, also exceeding capacity. The selected constrained threshold of 0.6583 produced 526 flags and a loss of 2,639 units while satisfying the 12% capacity ceiling in all three validation periods. Therefore, threshold selection must balance classification costs with operational constraints rather than automatically using 0.5.
 
-### The Fourth Stage | Day 4
+### The Fourth Stage
 
 ***Which feature was most important in your explanation, and why does that not prove causality?***
 
@@ -237,7 +237,7 @@ These measures provide a more realistic and trustworthy evaluation of model perf
 
 > However, high feature importance does not prove causality. SHAP and permutation importance measure the model's reliance on predictive patterns and statistical associations rather than establishing a cause-and-effect relationship. Correlated features may also share predictive information. Therefore, changing an applicant's bureau score does not necessarily cause a corresponding change in their actual default outcome.
 
-### The Fifth Stage | Day 5
+### The Fifth Stage
 
 ***Why did you choose the single model or the ensemble for the final project?***
 
