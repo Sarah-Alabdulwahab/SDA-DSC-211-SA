@@ -48,7 +48,7 @@ Notebook: `notebooks/01_baseline_boosting.ipynb`
 
 XGBoost was the provisional candidate on AP; Logistic Regression led ROC-AUC. The introductory random split is not the final validation design.
 
-#### Graphs
+#### Outcomes
 The learning curves compare training and inner validation log loss across boosting rounds for XGBoost and LightGBM. The selected stopping points of 61 and 41 trees, respectively, illustrate how early stopping controls model complexity without using the separate comparison set.
 ![Day1 learning curves](artifacts/day1_learning_curves.png)
 
@@ -73,7 +73,7 @@ Notebook: `notebooks/02_validation_tuning.ipynb`
 
 Tuning did not improve outer validation AP over the fixed model. The leaky control is diagnostic only.
 
-#### Graphs
+#### Outcomes
 
 This graph shows the training and validation sizes across three chronological folds. Training sizes increase from 3,223 to 5,731 applications as more historical data become available. The 90-day maturity rule and customer purging ensure that the evaluated folds contain no shared training and validation customers.
 ![Day2 fold sizes](artifacts/day2_fold_sizes.png)
@@ -100,7 +100,7 @@ Notebook: `notebooks/03_cost_sensitive_decision.ipynb`
 
 The exact cutoff is `0.6583471436014694` with `>=`. Recall was 40.89%; period flag rates were 8.39%, 10.93%, and 11.89%. The regional FPR gap was 0.6484 percentage points, a descriptive result only. The same threshold was selected for FN costs 8, 10 and 12 in the sensitivity experiment.
 
-#### Graphs
+#### Outcomes
 
 The ROC and precision–recall curves compare unweighted, weighted and oversampled LightGBM using the same forward OOF evaluation framework. They illustrate discrimination under class imbalance, while the subsequent threshold analysis evaluates operational costs and capacity. The weighted strategy was declared before comparison.
 ![Day3 roc pr](artifacts/day3_roc_pr.png)
@@ -129,7 +129,7 @@ Notebook: `notebooks/04_explain_calibrate.ipynb`
 
 The paired customer-cluster bootstrap Brier-change interval was [-0.05418, -0.03741], conditional on the fixed model and calibrator. Review candidates exceeded capacity in both evaluation quarters (109 vs 100; 122 vs 107). `CAPACITY_REVIEW_REQUIRED` is an acceptable diagnostic outcome; do not retune on evaluation data. Explanations are not causal or fairness evidence.
 
-#### Graphs
+#### Outcomes
 
 The graph compares training gain with permutation importance, which measures the reduction in evaluation AP when a feature group is shuffled. Bureau score and DTI lead the permutation ranking, with AP decreases of 0.1270 and 0.0690. These results indicate predictive reliance rather than causal effects.
 ![Permutation importance](artifacts/permutation_importance.png)
@@ -178,7 +178,7 @@ Notebook: `notebooks/05_final_model.ipynb`
 
 Replay matched and bundle bytes were verified. Challenge outcomes are unavailable, so challenge AP, recall, calibration and loss cannot be measured. Day 4 explanations do not transfer to this final model.
 
-#### Graphs
+#### Outcomes
 
 The correlation heatmaps compare the base models’ OOF predictions and prediction residuals. They help assess whether the models provide complementary information that might justify an ensemble. Diversity alone does not establish an improvement; the ensemble candidates must still satisfy the Worth-It Gate.
 ![Day5 diversity](artifacts/day5_diversity.png)
