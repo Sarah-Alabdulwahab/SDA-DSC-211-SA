@@ -243,3 +243,5 @@ Replay matched and bundle bytes were verified. Challenge outcomes are unavailabl
 
 > Consequently, the notebook returned KEEP SINGLE → Logistic. The simpler Logistic Regression model was retained because the additional complexity of an ensemble was not justified by the observed validation performance. This supports operational simplicity and maintainability without sacrificing observed predictive performance, although future generalization is not guaranteed.
 
+## Reference
+Training-program reference: [SDAIA Academy on GitHub](https://github.com/SDAIAAcademy).
