@@ -13,7 +13,7 @@ This project builds a reproducible machine-learning workflow to estimate synthet
 3. Run notebooks 01–05 in order, download executed notebooks and generated artifacts, and preserve the repository paths below.
 4. Extract `submission/project_bundle.zip` into the repository; run `notebooks/99_final_submission_check.ipynb` and GitHub Actions **Final Project Check** before submitting the public repository link.
 
-## Repository structure (required target)
+## Repository structure
 
 ```text
 README.md
