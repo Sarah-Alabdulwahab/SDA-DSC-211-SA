@@ -26,13 +26,11 @@ submission/project_bundle.zip
 tamweel/inference.py
 ```
 
-## Scope, limitations, and submission status
+## Scope and limitations
 
 Results are historical development evidence, not a guarantee of future performance. The challenge data are unlabeled; regional audits are descriptive, not fairness certification. Calibration is model-specific and final-model explanations require separate verification. This project is not intended for real underwriting or financial decisions.
 
 The saved notebook reports `REPLAY_MATCH` and `BUNDLE_BYTES_VERIFIED`, but also `PROJECT_WORK_REQUIRED` because earlier daily evidence and separate notebooks were missing from its bundle. Notebook 99, repository accessibility, and Final Project Check still require verification. The official administrative requirements state that no presentation is required, despite the saved bundle checker listing one; confirm the discrepancy before submission.
-
-Assignment references: `DAILY_LEARNING_PATH.md`, `EXPECTED_RESULTS.md`, `SUBMISSION_GUIDE.md`, `ADMINISTRATIVE_REQUIREMENTS.md` and `RUBRIC.md`. Figures below are extracted directly from the updated executed notebook; numerical results are from that run.
 
 ## Day 1 — Build a baseline and compare boosting
 
@@ -50,12 +48,11 @@ Notebook: `notebooks/01_baseline_boosting.ipynb`
 
 XGBoost was the provisional candidate on AP; Logistic Regression led ROC-AUC. The introductory random split is not the final validation design.
 
-**Required evidence:** `artifacts/day1_model_comparison.csv`, `artifacts/day1_learning_curves.png`, `artifacts/day1_roc_pr.png`.
-
 #### Graphs
-
+The learning curves compare training and inner validation log loss across boosting rounds for XGBoost and LightGBM. The selected stopping points of 61 and 41 trees, respectively, illustrate how early stopping controls model complexity without using the separate comparison set.
 ![Day1 learning curves](artifacts/day1_learning_curves.png)
 
+The ROC and precision–recall curves compare the ranking performance of the three baseline models. Logistic Regression achieved the highest ROC-AUC (0.8213), while XGBoost achieved the highest AP (0.3338). With only 7.89% defaults, AP provides particularly relevant evidence for the provisional selection of XGBoost.
 ![Day1 roc pr](artifacts/day1_roc_pr.png)
 
 #### Daily question | Day 1
@@ -82,14 +79,15 @@ Notebook: `notebooks/02_validation_tuning.ipynb`
 
 Tuning did not improve outer validation AP over the fixed model. The leaky control is diagnostic only.
 
-**Required evidence:** `artifacts/validation_summary.csv`, `artifacts/leakage_audit.csv`, `artifacts/fold_audit.csv`, `artifacts/optuna_results.csv`.
-
 #### Graphs
 
+This graph shows the training and validation sizes across three chronological folds. Training sizes increase from 3,223 to 5,731 applications as more historical data become available. The 90-day maturity rule and customer purging ensure that the evaluated folds contain no shared training and validation customers.
 ![Day2 fold sizes](artifacts/day2_fold_sizes.png)
 
+The Optuna search graph tracks mean AP across eight tuning trials using three internal forward folds. It illustrates how hyperparameters are selected using internal validation rather than outer validation outcomes. These search scores are not independent estimates of final model performance.
 ![Day2 search](artifacts/day2_search.png)
 
+This comparison illustrates how validation design affects reported ROC-AUC and AP. Removing post-outcome features reduced random-control AP from 0.9988 to 0.3110, revealing substantial leakage-related inflation. Honest fixed and tuned models achieved AP of 0.3153 and 0.3133, respectively; the whiskers represent fold standard deviations, not confidence intervals.
 ![Day2 validation comparison](artifacts/day2_validation_comparison.png)
 
 #### Daily question | Day 2
@@ -127,14 +125,15 @@ Notebook: `notebooks/03_cost_sensitive_decision.ipynb`
 
 The exact cutoff is `0.6583471436014694` with `>=`. Recall was 40.89%; period flag rates were 8.39%, 10.93%, and 11.89%. The regional FPR gap was 0.6484 percentage points, a descriptive result only. The same threshold was selected for FN costs 8, 10 and 12 in the sensitivity experiment.
 
-**Required evidence:** `artifacts/threshold_metrics.json`, `artifacts/threshold_sweep.csv`, `artifacts/day3_region_audit.csv`, `artifacts/cost_curve.png`.
-
 #### Graphs
 
+The ROC and precision–recall curves compare unweighted, weighted and oversampled LightGBM using the same forward OOF evaluation framework. They illustrate discrimination under class imbalance, while the subsequent threshold analysis evaluates operational costs and capacity. The weighted strategy was declared before comparison.
 ![Day3 roc pr](artifacts/day3_roc_pr.png)
 
+The cost and flag-rate curves show how changing the score threshold affects educational loss and review demand. The unconstrained threshold of 0.4486 minimizes loss but exceeds capacity, whereas 0.6583 produces 526 flags and a loss of 2,639 units while satisfying the 12% ceiling in every period. The plotted loss is normalized per 10,000 applications.
 ![Cost curve](artifacts/cost_curve.png)
 
+The left panel compares actual review flags with available capacity in each validation period, confirming flag rates of 8.39%, 10.93% and 11.89%. The right panel compares regional false-positive rates, with a maximum gap of approximately 0.65 percentage points. This regional comparison is descriptive and does not establish fairness.
 ![Day3 capacity regions](artifacts/day3_capacity_regions.png)
 
 #### Daily question | Day 3
@@ -164,20 +163,24 @@ Notebook: `notebooks/04_explain_calibrate.ipynb`
 
 The paired customer-cluster bootstrap Brier-change interval was [-0.05418, -0.03741], conditional on the fixed model and calibrator. Review candidates exceeded capacity in both evaluation quarters (109 vs 100; 122 vs 107). `CAPACITY_REVIEW_REQUIRED` is an acceptable diagnostic outcome; do not retune on evaluation data. Explanations are not causal or fairness evidence.
 
-**Required evidence:** `artifacts/permutation_importance.csv`, `artifacts/shap_beeswarm.png`, `artifacts/shap_waterfall.png`, `artifacts/reliability_curve.png`, `artifacts/calibration_metrics.json`.
-
 #### Graphs
 
+The graph compares training gain with permutation importance, which measures the reduction in evaluation AP when a feature group is shuffled. Bureau score and DTI lead the permutation ranking, with AP decreases of 0.1270 and 0.0690. These results indicate predictive reliance rather than causal effects.
 ![Permutation importance](artifacts/permutation_importance.png)
 
+The SHAP beeswarm summarizes feature contributions across sampled evaluation applications. Horizontal position represents the direction and magnitude of contributions to raw log-odds, while color represents feature values. Bureau score and DTI have the highest mean absolute SHAP contributions (0.9042 and 0.5437), indicating their importance to this LightGBM model.
 ![Shap beeswarm](artifacts/shap_beeswarm.png)
 
+The waterfall explains the individual prediction for application TR-009585 by adding feature contributions to the model baseline in raw log-odds. Bureau score (+2.2693) and DTI (+1.1981) are the largest positive contributors. These are model-specific explanations, not causal reasons or calibrated probability changes.
 ![Shap waterfall](artifacts/shap_waterfall.png)
 
+The reliability diagram compares predicted probabilities with observed default rates, alongside the number of applications in each probability bin. Sigmoid calibration improved Brier score from 0.11303 to 0.06711 and ECE from 0.14687 to 0.02249 on the separate evaluation period, while AP and ROC-AUC remained unchanged.
 ![Reliability curve](artifacts/reliability_curve.png)
 
+The stability plots summarize customer-cluster bootstrap uncertainty for AP and the paired change in Brier score. The Brier-change interval of [-0.05418, -0.03741] supports improved probability reliability on the evaluation sample, conditional on the fixed model and calibrator. It does not guarantee future performance.
 ![Stability summary](artifacts/stability_summary.png)
 
+The left panel illustrates the sigmoid mapping and diagnostic review band of ±0.02 around the transported threshold. The right panel compares review demand with capacity by evaluation quarter. Candidate counts of 109 and 122 exceed capacities of 100 and 107, highlighting the need for capacity review without retuning on evaluation data.
 ![Review zone](artifacts/review_zone.png)
 
 #### Daily question | Day 4
@@ -217,18 +220,21 @@ Notebook: `notebooks/05_final_model.ipynb`
 
 Replay matched and bundle bytes were verified. Challenge outcomes are unavailable, so challenge AP, recall, calibration and loss cannot be measured. Day 4 explanations do not transfer to this final model.
 
-**Required evidence:** `artifacts/ensemble_comparison.csv`, `artifacts/final_metrics.json`, `artifacts/final_policy.json`, `artifacts/final_model/`, `reports/MODEL_CARD.md`, `reports/ENSEMBLE_DECISION.md`, `submission/submission.csv`, `submission/project_bundle.zip`.
-
 #### Graphs
 
+The correlation heatmaps compare the base models’ OOF predictions and prediction residuals. They help assess whether the models provide complementary information that might justify an ensemble. Diversity alone does not establish an improvement; the ensemble candidates must still satisfy the Worth-It Gate.
 ![Day5 diversity](artifacts/day5_diversity.png)
 
+The graph compares mean AP, fold variability, Brier score and ECE across all six candidates before final calibration. Logistic Regression leads with AP of 0.39166, ahead of weighted averaging at 0.38942. No ensemble achieves the required improvement above the reference fold SD of 0.02981, supporting the simpler single-model choice.
 ![Day5 ensemble comparison](artifacts/day5_ensemble_comparison.png)
 
+The left panel shows educational loss across raw OOF thresholds and identifies capacity-feasible choices. The selected threshold of 0.168922 yields 245 flags and a loss of 1,111 units. The right panel shows regional false-positive rates with a gap of approximately 3.98 percentage points, a descriptive diagnostic rather than fairness certification.
 ![Day5 policy regions](artifacts/day5_policy_regions.png)
 
+The reliability plots compare raw and sigmoid-calibrated probabilities on the 836 reserved calibration applications. Brier score worsened from 0.07647 to 0.07806 and ECE from 0.02112 to 0.03487, so improved reliability was not demonstrated. These are calibration-fit diagnostics, not independent evaluation results.
 ![Day5 calibration fit](artifacts/day5_calibration_fit.png)
 
+The score distribution shows calibrated probabilities for the 2,500 unlabeled challenge applications and the frozen threshold of 0.122258. Of the 330 threshold-eligible applications, 30 are removed by the capacity policy, leaving exactly 300 review flags (12%). Without challenge outcomes, predictive performance cannot be assessed.
 ![Day5 challenge capacity](artifacts/day5_challenge_capacity.png)
 
 #### Daily question | Day 5
